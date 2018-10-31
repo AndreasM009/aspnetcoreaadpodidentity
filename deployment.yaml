@@ -1,0 +1,66 @@
+apiVersion: "aadpodidentity.k8s.io/v1"
+kind: AzureIdentity
+metadata:
+  name: aspnet-core-identity
+spec:
+  type: 0
+  ResourceID: #{ResourceId}#
+  ClientID: #{ClientId}#
+---
+apiVersion: "aadpodidentity.k8s.io/v1"
+kind: AzureIdentityBinding
+metadata:
+  name: aspnetcoreidentity-azure-identity-binding
+spec:
+  AzureIdentity: aspnet-core-identity
+  Selector: aspnetcoreidentity
+---
+apiVersion: "v1"
+kind: Service
+metadata:
+  name: aspnetcoreidentitysvc
+  labels:
+    name: aspnetcoreidentitysvc
+    app: aspnetcoreidentity
+spec:
+  selector:
+    name: aspnetcoreidentitybackend
+    app: aspnetcoreidentity
+  type: LoadBalancer
+  ports:
+    - port: 80
+      name: http
+      targetPort: 80
+      protocol: TCP
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: aspnetcoreidentitybackend
+spec:
+  replicas: 3
+  minReadySeconds: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        name: aspnetcoreidentitybackend
+        app: aspnetcoreidentity
+        aadpodidbinding: aspnetcoreidentity
+    spec:
+      containers:
+      - name: aspnetcoreidentity
+        image: anmock.azurecr.io/aspnetcoreidentity:#{BuildNumber}#
+        env:
+          - name: KeyVault__BaseUrl
+            value: "#{KeyVault}#"
+        ports:
+          - containerPort: 80
+            name: http
+            protocol: TCP  
+      imagePullSecrets:
+        - name: kuberegistry

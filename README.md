@@ -68,7 +68,7 @@ az keyvault create -n aspnetcorekv -g <resourcegroup> -l westeurope
 ## Assign permissions to user assigned identity
 
 ``` Azure Cli
-az keyvault set-policy -n aspnetcorekv -g <resourcegroup> --secret-permissions get, list --key-permissions get, list --object-id <identity principal id> --spn AspnetCoreIdentity
+az keyvault set-policy -n aspnetcorekv -g <resourcegroup> --secret-permissions {get,list} --key-permissions {get,list} --object-id <identity principal id> --spn AspnetCoreIdentity
 ```
 
 ## Add some secret to your Key Vault
